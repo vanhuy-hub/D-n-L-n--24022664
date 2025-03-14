@@ -1,0 +1,2 @@
+
+#include"commonfunction.h"

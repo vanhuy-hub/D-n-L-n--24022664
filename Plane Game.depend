@@ -1,0 +1,17 @@
+# depslib dependency file v1.0
+1741879135 source:d:\plane game\commonfunction.cpp
+	"commonfunction.h"
+
+1741960187 d:\plane game\commonfunction.h
+	<string>
+	<SDL.h>
+	<SDL_image.h>
+	<windows.h>
+	<SDL_mixer.h>
+	<SDL_ttf.h>
+	<vector>
+
+1741962591 source:d:\plane game\main.cpp
+	"commonfunction.h"
+	<iostream>
+
