@@ -1,6 +1,6 @@
 #ifndef COMMON_FUNCTION_H_//định nghĩa thư viên
 #define COMMON_FUNCTION_H_
-
+#include<algorithm>
 #include<string>
 #include<SDL.h>
 #include<SDL_image.h>
@@ -8,11 +8,14 @@
 #include<SDL_mixer.h>
 #include<SDL_ttf.h>
 #include<vector>
-
+#include <cstdlib>  // Thư viện cho rand()
+#include <ctime>    // Thư viện cho time()
 //extern SDL_Renderer *g_renderer;//ve anh
+
 static SDL_Window* g_window=NULL;
 static SDL_Renderer *g_screen=NULL;
 static SDL_Event g_event ;
+
 
 //các biến dười để dùng trong kĩ thuật color key
 const int COLOR_KEY_R =0 ;
@@ -26,16 +29,39 @@ const int MAP_WIDTH=4800;
 const int MAP_HEIGHT=600;
 
 const int PLANE_WIDTH=80;
-const int PLANE_HEIGHT=80;
+const int PLANE_HEIGHT=60;
 const int FIRST_X_POS_PLANE=0;
 const int FIRST_Y_POS_PLANE=0;
-const int MIN_X_PLANE=200;
-const int MAX_X_PLANE=600;
+const int MIN_X_PLANE=100;
+const int MAX_X_PLANE=850;
+
+
+const int speed_enemy=1;
+
+
 
 const int speed_plane=5;
 const int speed_map=10;
 
-const int BULLET_WIDTH=20;
-const int BULLET_HEIGHT=20;
-const int speed_bullet=1;
+const int BULLET_WIDTH=15;
+const int BULLET_HEIGHT=15;
+const int speed_bullet=2;
+
+const int EXP_WIDTH=165 ;
+const int EXP_HEIGHT=165 ;
+
+const int BOSS_WIDTH=313;
+const int BOSS_HEIGHT=163;
+const int SPEED_BOSS=1;
+
+const int MAX_BLOOD=60;
+struct Explosion {
+    SDL_Rect rect; // Vị trí vụ nổ
+    int frame;     // Frame hiện tại của vụ nổ
+};
+struct Boss{
+ SDL_Rect rect;
+ int frame;
+};
+const int frameDelay = 150 ;
 #endif // COMMON_FUNCTION_H_
