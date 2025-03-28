@@ -1,8 +1,8 @@
 # depslib dependency file v1.0
-1741879135 source:d:\plane game\commonfunction.cpp
+1742866378 source:d:\plane game\commonfunction.cpp
 	"commonfunction.h"
 
-1742199646 d:\plane game\commonfunction.h
+1743094740 d:\plane game\commonfunction.h
 	<algorithm>
 	<string>
 	<SDL.h>
@@ -14,7 +14,7 @@
 	<cstdlib>
 	<ctime>
 
-1742212563 source:d:\plane game\main.cpp
+1743094761 source:d:\plane game\main.cpp
 	"commonfunction.h"
 	<iostream>
 
