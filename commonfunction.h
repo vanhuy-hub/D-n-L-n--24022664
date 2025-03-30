@@ -10,14 +10,13 @@
 #include<vector>
 #include <cstdlib>  // Thư viện cho rand()
 #include <ctime>    // Thư viện cho time()
-//extern SDL_Renderer *g_renderer;//ve anh
+
 
 static SDL_Window* g_window=NULL;
 static SDL_Renderer *g_screen=NULL;
+static TTF_Font *font=NULL;
 static SDL_Event g_event ;
 
-static bool quit = false;
-static bool paused=false;
 //các biến dười để dùng trong kĩ thuật color key
 const int COLOR_KEY_R =0 ;
 const int COLOR_KEY_G =255 ;
@@ -38,13 +37,18 @@ const int FIRST_Y_POS_PLANE=0;
 const int MIN_X_PLANE=100;
 const int MAX_X_PLANE=850;
 
+const int CONTINUE_WIDTH=80;
+const int CONTINUE_HEIGHT=80;
+const int POINT_WIDTH=200;
+const int POINT_HEIGHT=100;
 
 const int speed_enemy=1;
-
+const int number_bullet_main=1;
 
 
 const double speed_plane=1;
 const int speed_map=1;
+
 
 const int BULLET_WIDTH=15;
 const int BULLET_HEIGHT=15;
@@ -57,16 +61,10 @@ const int BOSS_WIDTH=313;
 const int BOSS_HEIGHT=163;
 const int SPEED_BOSS=1;
 
-const int MAX_BLOOD=60;
+const int MAX_BLOOD=10;
 const int frameDelay = 150 ;
 
-struct Explosion {
-    SDL_Rect rect; // Vị trí vụ nổ
-    int frame;     // Frame hiện tại của vụ nổ
-};
-
-struct Blood{
-SDL_Rect rect;
-};
+const SDL_Color white={255,255,255};
+const SDL_Color black={0,0,0};
 
 #endif // COMMON_FUNCTION_H_
