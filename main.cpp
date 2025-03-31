@@ -1,13 +1,19 @@
 #include "commonfunction.h"
 #include"commonfunction.cpp"
-#include <iostream>
 using namespace std;
 //cac bien toan cuc
  bool quit = false;
  bool paused=true;
+
+ int numberenemy=3;
 int numberkill=0;
+long long Time=0;
+long long bestTime=0;
  SDL_Texture* texture_plane_normal = NULL;
  SDL_Texture* texture_plane_fight = NULL;
+ SDL_Texture *texture_enemy1=NULL;
+ SDL_Texture *texture_enemy2=NULL;
+Uint32 lastTime;
 //..
 //cac vector dan ,enemy
 vector<SDL_Rect>bullets;
@@ -45,7 +51,6 @@ bool init() {
 SDL_Texture* loadTexture(string path, SDL_Renderer* renderer) {
     SDL_Surface* loadSurface = IMG_Load(path.c_str());
     if (loadSurface == NULL) {
-        cout << "Không thể tải ảnh " << path << " Lỗi: " << IMG_GetError() << endl;
         return NULL;
     }
 
@@ -75,16 +80,22 @@ BackGround Map;
 BackGround Bullet;
 BackGround Continue;
 BackGround Restart ;
-BackGround Point;
+BackGround Quit;
 BackGround StartText;
 //...
 
-//cau truc nguoi choi
-struct Player {
+//cau truc may bay main va dich
+class Plane {
+public:
+    SDL_Texture *texture;
+    SDL_Rect rect;
+    bool isDie;
+};
+class Player:public Plane {
+    public:
     SDL_Texture* texture;
     SDL_Rect rect;
     bool isFighted;
-    bool isDie;
     bool moveUp,moveDown,moveRight,moveLeft;
     Player() {
         texture = NULL;
@@ -94,6 +105,7 @@ struct Player {
         moveUp=moveDown=moveRight=moveLeft=false;
     }
 };
+Plane Enemy;
 Player Main;
 
 //xu li nguoi choi di chuyen
@@ -135,6 +147,16 @@ else Main.texture=texture_plane_normal;
 }
 //...
 
+//ham xu li thoi gian chay
+void Timer(){
+if(paused==false){
+Uint32 currentTime=SDL_GetTicks();
+if(currentTime-lastTime>=1000){
+    Time++;
+    lastTime=currentTime;
+}
+}
+}
 //xu li su kien ban phim va chuot
 void HandlingEvent() {
     while (SDL_PollEvent(&g_event)) {
@@ -142,7 +164,7 @@ void HandlingEvent() {
             quit = true;
 
         }
-    else if(g_event.type==SDL_KEYDOWN){
+    else if(g_event.type==SDL_KEYDOWN&&!paused){
             switch(g_event.key.keysym.sym){
         case SDLK_UP:
             Main.moveUp=true;break;
@@ -152,9 +174,6 @@ void HandlingEvent() {
            Main.moveLeft=true;break;
         case SDLK_RIGHT:
             Main.moveRight=true;break;
-        case SDLK_SPACE:
-            paused=!paused;
-            break;
         case SDLK_z:
             Main.isFighted=true;
             BackGround newBullet;
@@ -179,12 +198,22 @@ void HandlingEvent() {
             Main.isFighted=false;break;
             }
     }
+    else if(g_event.type==SDL_MOUSEBUTTONDOWN){
+        int x=g_event.button.x,y=g_event.button.y;
+        if(y>=520&&y<=600){
+            if(x>400&&x<480)paused=!paused;
+            else if(x>500&&x<700){
+                quit=true;
+            }
 
-
+        }
+    }
     }
 
          if(!paused)
+
          EventPlayer();
+         Timer();
         }
 
 //...
@@ -205,8 +234,25 @@ else {
 }
 }
 }
-//...
+void DrawEnemy(){
+if(!paused){
 
+    while(enemys.size()<numberenemy){
+        SDL_Rect newEnemy={SCREEN_WIDTH+ rand() % 300, rand() % (SCREEN_HEIGHT - ENEMY_HEIGHT-130), ENEMY_WIDTH, ENEMY_HEIGHT};
+        enemys.push_back(newEnemy);
+    }
+    for(int i=enemys.size()-1;i>=0;i--){
+        enemys[i].x-=speed_enemy;
+        if(enemys[i].x<0-ENEMY_WIDTH){
+            enemys.erase(enemys.begin()+i);
+        }
+        else {SDL_RenderCopy(g_screen,Enemy.texture,NULL,&enemys[i]);
+    }
+}
+}
+}
+//...
+//ham ve chu
 void DrawRenderText(SDL_Renderer* renderer, TTF_Font* font, const char* text, int x, int y, SDL_Color color) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -219,13 +265,15 @@ void DrawRenderText(SDL_Renderer* renderer, TTF_Font* font, const char* text, in
 }
 //ve menu
 void DrawMenu(){
-   // SDL_RenderCopy(g_screen,Point.texture,NULL,&Point.rect);
-
-     DrawRenderText(g_screen,font,"Kill:   /100",0,0,white);
-     DrawRenderText(g_screen,font,"Time:    s",0,30,white);
-     //DrawRenderText(g_screen,font,NumberKilled,0,0,white);
-     DrawRenderText(g_screen,font,"Highest:    s",0,60,black);
-
+string kill="Kill:"+to_string(numberkill)+"/"+to_string(numberMaxEnemy);
+string time_current="Time:"+to_string(Time)+"s";
+string best="Best Time:"+to_string(bestTime)+"s";
+     DrawRenderText(g_screen,font,kill.c_str(),0,0,white);
+     DrawRenderText(g_screen,font,time_current.c_str(),0,30,white);
+     DrawRenderText(g_screen,font,best.c_str(),0,60,black);
+     SDL_RenderCopy(g_screen,Continue.texture,NULL,&Continue.rect);
+     SDL_RenderCopy(g_screen,Restart.texture,NULL,&Restart.rect);
+     SDL_RenderCopy(g_screen,Quit.texture,NULL,&Quit.rect);
 }
 // Hàm vẽ texture lên cửa sổ
 void DrawOnWindow() {
@@ -234,6 +282,7 @@ void DrawOnWindow() {
      SDL_RenderCopy(g_screen, Main.texture, NULL, &Main.rect);
     DrawMenu();
     DrawBullet();
+    DrawEnemy();
     SDL_RenderPresent(g_screen);
 }
 //...
@@ -247,13 +296,13 @@ void first_state(){
 
     }
   Continue.texture=IMG_LoadTexture(g_screen,"image/continueButton.png");
-  Continue.rect={0,0,CONTINUE_WIDTH,CONTINUE_HEIGHT};
+  Continue.rect={400,520,CONTINUE_WIDTH,CONTINUE_HEIGHT};
 
   Restart.texture=IMG_LoadTexture(g_screen,"image/playAgainButton.png");
-  Restart.rect={80,0,CONTINUE_WIDTH,CONTINUE_HEIGHT};
+  Restart.rect={700,520,CONTINUE_WIDTH,CONTINUE_HEIGHT};
 
-   Point.texture=IMG_LoadTexture(g_screen,"image/scoreBoard.png");
-   Point.rect={0,0,POINT_WIDTH,POINT_HEIGHT};
+   Quit.texture=IMG_LoadTexture(g_screen,"image/exitButton.png");
+   Quit.rect={500,520,QUIT_WIDTH,QUIT_HEIGHT};
 
     texture_plane_normal=loadTexture("image/plane_fly.png",g_screen);
     texture_plane_fight=loadTexture("image/plane_fly_bullet.png",g_screen);
@@ -265,6 +314,8 @@ void first_state(){
     if(Bullet.texture==NULL){
         cout<<"loi tai anh dan ";
     }
+    texture_enemy1=loadTexture("image/af1.png",g_screen);
+    Enemy.texture=texture_enemy1;
 }
 //...
 
@@ -283,11 +334,13 @@ void close() {
 // Main
 int main(int argc, char* argv[]) {
     if (!init()) return -1;
+    srand(time(0));
     first_state();
     while (!quit) {
+
         HandlingEvent();
         DrawOnWindow();
-        SDL_Delay(1);
+
     }
     close();
     return 0;

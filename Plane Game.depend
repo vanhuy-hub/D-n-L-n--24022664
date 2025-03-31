@@ -2,7 +2,7 @@
 1743336289 source:d:\plane game\commonfunction.cpp
 	"commonfunction.h"
 
-1743337369 d:\plane game\commonfunction.h
+1743392388 d:\plane game\commonfunction.h
 	<algorithm>
 	<string>
 	<SDL.h>
@@ -13,11 +13,12 @@
 	<vector>
 	<cstdlib>
 	<ctime>
+	<iostream>
+	<cstring>
 
-1743337552 source:d:\plane game\main.cpp
+1743392370 source:d:\plane game\main.cpp
 	"commonfunction.h"
 	"commonfunction.cpp"
-	<iostream>
 
 1743336289 d:\plane game\commonfunction.cpp
 	"commonfunction.h"

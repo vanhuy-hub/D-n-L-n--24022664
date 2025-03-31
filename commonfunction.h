@@ -10,7 +10,8 @@
 #include<vector>
 #include <cstdlib>  // Thư viện cho rand()
 #include <ctime>    // Thư viện cho time()
-
+#include<iostream>
+#include<cstring>
 
 static SDL_Window* g_window=NULL;
 static SDL_Renderer *g_screen=NULL;
@@ -27,8 +28,7 @@ const int SCREEN_HEIGHT=600;//chieu dai man hinh
 
 const int MAP_WIDTH=4800;
 const int MAP_HEIGHT=600;
-const int MENU_WIDTH=500;
-const int MENU_HEIGHT=300;
+
 
 const int PLANE_WIDTH=80;
 const int PLANE_HEIGHT=60;
@@ -39,14 +39,14 @@ const int MAX_X_PLANE=850;
 
 const int CONTINUE_WIDTH=80;
 const int CONTINUE_HEIGHT=80;
-const int POINT_WIDTH=200;
-const int POINT_HEIGHT=100;
+const int QUIT_WIDTH=200;
+const int QUIT_HEIGHT=88;
 
-const int speed_enemy=1;
+const double speed_enemy=1.1;
 const int number_bullet_main=1;
 
 
-const double speed_plane=1;
+const int speed_plane=1;
 const int speed_map=1;
 
 
@@ -57,9 +57,9 @@ const int speed_bullet=2;
 const int EXP_WIDTH=165 ;
 const int EXP_HEIGHT=165 ;
 
-const int BOSS_WIDTH=313;
-const int BOSS_HEIGHT=163;
-const int SPEED_BOSS=1;
+const int numberMaxEnemy=100;
+const int ENEMY_WIDTH=100;
+const int ENEMY_HEIGHT=50;
 
 const int MAX_BLOOD=10;
 const int frameDelay = 150 ;
