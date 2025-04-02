@@ -42,11 +42,11 @@ const int CONTINUE_HEIGHT=80;
 const int QUIT_WIDTH=200;
 const int QUIT_HEIGHT=88;
 
-const double speed_enemy=1.1;
+const double speed_enemy=1;
 const int number_bullet_main=1;
 
 
-const int speed_plane=1;
+const double speed_plane=1;
 const int speed_map=1;
 
 
@@ -61,10 +61,11 @@ const int numberMaxEnemy=100;
 const int ENEMY_WIDTH=100;
 const int ENEMY_HEIGHT=50;
 
-const int MAX_BLOOD=10;
+const int speed_blood=5;
 const int frameDelay = 150 ;
+
 
 const SDL_Color white={255,255,255};
 const SDL_Color black={0,0,0};
-
+const SDL_Color red={185,0,0};
 #endif // COMMON_FUNCTION_H_

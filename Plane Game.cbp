@@ -32,6 +32,8 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="Plane.cpp" />
+		<Unit filename="backGround.cpp" />
 		<Unit filename="commonfunction.cpp" />
 		<Unit filename="commonfunction.h" />
 		<Unit filename="main.cpp" />

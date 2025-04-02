@@ -1,10 +1,11 @@
 #include "commonfunction.h"
-#include"commonfunction.cpp"
+#include"Plane.cpp"
+#include"backGround.cpp"
 using namespace std;
 //cac bien toan cuc
  bool quit = false;
- bool paused=true;
-
+ bool paused=false ;
+  int blood_main=60;
  int numberenemy=3;
 int numberkill=0;
 long long Time=0;
@@ -20,7 +21,6 @@ vector<SDL_Rect>bullets;
 vector<SDL_Rect>enemys;
 
 //...
-
 // Hàm khởi tạo SDL và SDL_Image va SDL_ttf va SDL_mixer
 bool init() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -66,16 +66,6 @@ SDL_Texture* loadTexture(string path, SDL_Renderer* renderer) {
 
 //...
 // Cấu trúc background
-struct BackGround {
-    SDL_Texture* texture;
-    SDL_Rect rect;
-
-    BackGround() {
-        texture = NULL;
-        rect={0,0,0,0};
-    }
-
-};
 BackGround Map;
 BackGround Bullet;
 BackGround Continue;
@@ -85,16 +75,9 @@ BackGround StartText;
 //...
 
 //cau truc may bay main va dich
-class Plane {
-public:
-    SDL_Texture *texture;
-    SDL_Rect rect;
-    bool isDie;
-};
 class Player:public Plane {
     public:
-    SDL_Texture* texture;
-    SDL_Rect rect;
+    SDL_Rect blood;
     bool isFighted;
     bool moveUp,moveDown,moveRight,moveLeft;
     Player() {
@@ -144,6 +127,7 @@ if(Main.isFighted){
 }
 else Main.texture=texture_plane_normal;
 
+
 }
 //...
 
@@ -157,6 +141,18 @@ if(currentTime-lastTime>=1000){
 }
 }
 }
+//...
+
+//ham xu li restart
+void restart(){
+blood_main=60;
+Main.isDie=false;
+paused=false;
+enemys.clear();
+bullets.clear();
+Map.rect.x=0;
+Main.rect.x=0;
+}
 //xu li su kien ban phim va chuot
 void HandlingEvent() {
     while (SDL_PollEvent(&g_event)) {
@@ -164,7 +160,8 @@ void HandlingEvent() {
             quit = true;
 
         }
-    else if(g_event.type==SDL_KEYDOWN&&!paused){
+    else if(g_event.type==SDL_KEYDOWN){
+        if(!paused){
             switch(g_event.key.keysym.sym){
         case SDLK_UP:
             Main.moveUp=true;break;
@@ -183,6 +180,7 @@ void HandlingEvent() {
             }
             break;
             }
+    }
     }
     else if(g_event.type==SDL_KEYUP&&g_event.key.repeat==0){
         switch(g_event.key.keysym.sym){
@@ -205,25 +203,40 @@ void HandlingEvent() {
             else if(x>500&&x<700){
                 quit=true;
             }
+            else if(x>700&&x<780){
+                restart();
+            }
 
         }
     }
     }
 
-         if(!paused)
-
-         EventPlayer();
-         Timer();
         }
 
 //...
+//ham kiem tra check var giua 2 texture
+bool checkVar(SDL_Rect rect1,SDL_Rect rect2)
+{
+return ((rect1.x<rect2.x+rect2.w)
+        &&(rect1.x+rect1.w>rect2.x)
+        &&(rect1.y<rect2.y+rect2.h)
+        &&(rect1.y+rect1.h>rect2.y));
+}
 //xu li dan cua main
 void DrawBullet(){
-if(!paused){
+
 if(bullets.empty())return;
 else {
     for(int i=bullets.size()-1;i>=0;i--){
         bullets[i].x+=speed_bullet;
+    //kiem tra va cham giua dan cua main va enemy
+    for(int j=enemys.size()-1;j>=0;j--){
+        if(checkVar(bullets[i],enemys[j])){
+            bullets.erase(bullets.begin()+i);
+            enemys.erase(enemys.begin()+j);
+            numberkill ++;
+        }
+    }
         if(bullets[i].x>=SCREEN_WIDTH){
             bullets.erase(bullets.begin()+i);
         }
@@ -232,23 +245,31 @@ else {
         }
     }
 }
-}
+
 }
 void DrawEnemy(){
-if(!paused){
-
     while(enemys.size()<numberenemy){
         SDL_Rect newEnemy={SCREEN_WIDTH+ rand() % 300, rand() % (SCREEN_HEIGHT - ENEMY_HEIGHT-130), ENEMY_WIDTH, ENEMY_HEIGHT};
         enemys.push_back(newEnemy);
     }
     for(int i=enemys.size()-1;i>=0;i--){
         enemys[i].x-=speed_enemy;
+        //kiem tra check var enemys va nhan vat va giam hp nhan vat
         if(enemys[i].x<0-ENEMY_WIDTH){
             enemys.erase(enemys.begin()+i);
         }
+           if(checkVar(enemys[i],Main.rect))
+           {
+            if(blood_main-speed_blood>=0){
+                blood_main-=speed_blood;
+            }
+            else {
+                Main.isDie=true;
+            }
+             enemys.erase(enemys.begin()+i);
+        }
         else {SDL_RenderCopy(g_screen,Enemy.texture,NULL,&enemys[i]);
     }
-}
 }
 }
 //...
@@ -274,13 +295,29 @@ string best="Best Time:"+to_string(bestTime)+"s";
      SDL_RenderCopy(g_screen,Continue.texture,NULL,&Continue.rect);
      SDL_RenderCopy(g_screen,Restart.texture,NULL,&Restart.rect);
      SDL_RenderCopy(g_screen,Quit.texture,NULL,&Quit.rect);
+if(Main.isDie==true){
+    DrawRenderText(g_screen,font,"YOU LOSE",500,200,red);
+    paused=true;
+}
+}
+//...
+//ham ve thanh mau cua player
+void DrawBloodMain(){
+Main.blood={Main.rect.x+7,Main.rect.y-10,blood_main,10};
+SDL_SetRenderDrawColor(g_screen,219,26,33,255);
+SDL_RenderFillRect(g_screen,&Main.blood);
+//neu MainDie
+
 }
 // Hàm vẽ texture lên cửa sổ
 void DrawOnWindow() {
     SDL_RenderClear(g_screen);
+    EventPlayer();
+    Timer();
     SDL_RenderCopy(g_screen, Map.texture, &Map.rect, NULL);
      SDL_RenderCopy(g_screen, Main.texture, NULL, &Main.rect);
-    DrawMenu();
+     DrawMenu();
+    DrawBloodMain();
     DrawBullet();
     DrawEnemy();
     SDL_RenderPresent(g_screen);
@@ -306,6 +343,7 @@ void first_state(){
 
     texture_plane_normal=loadTexture("image/plane_fly.png",g_screen);
     texture_plane_fight=loadTexture("image/plane_fly_bullet.png",g_screen);
+    Main.texture=texture_plane_normal;
     if(texture_plane_fight==NULL||texture_plane_normal==NULL){
         cout<<"loi tai texture plane"<<endl;
     }
@@ -318,7 +356,6 @@ void first_state(){
     Enemy.texture=texture_enemy1;
 }
 //...
-
 
 // Hàm giải phóng tài nguyên
 void close() {
@@ -337,8 +374,8 @@ int main(int argc, char* argv[]) {
     srand(time(0));
     first_state();
     while (!quit) {
-
         HandlingEvent();
+        if(!paused)
         DrawOnWindow();
 
     }
