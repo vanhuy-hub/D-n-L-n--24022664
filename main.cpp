@@ -3,6 +3,7 @@
 #include"backGround.cpp"
 using namespace std;
 //cac bien toan cuc
+bool notpressPaused=false;
  bool quit = false;
  bool paused=false ;
   int blood_main=60;
@@ -152,6 +153,9 @@ enemys.clear();
 bullets.clear();
 Map.rect.x=0;
 Main.rect.x=0;
+Time=0;
+numberkill=0;
+notpressPaused=false;
 }
 //xu li su kien ban phim va chuot
 void HandlingEvent() {
@@ -199,7 +203,7 @@ void HandlingEvent() {
     else if(g_event.type==SDL_MOUSEBUTTONDOWN){
         int x=g_event.button.x,y=g_event.button.y;
         if(y>=520&&y<=600){
-            if(x>400&&x<480)paused=!paused;
+            if(x>400&&x<480&&!notpressPaused)paused=!paused;
             else if(x>500&&x<700){
                 quit=true;
             }
@@ -284,6 +288,14 @@ void DrawRenderText(SDL_Renderer* renderer, TTF_Font* font, const char* text, in
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 }
+//ham luu diem
+void SaveTime(long long x){
+   ofstream file ("BestTime.txt");
+   if(!file.is_open())cout<<"ERROR OPEN FILE";
+   file<<x;
+   file.close();
+}
+//...
 //ve menu
 void DrawMenu(){
 string kill="Kill:"+to_string(numberkill)+"/"+to_string(numberMaxEnemy);
@@ -296,8 +308,23 @@ string best="Best Time:"+to_string(bestTime)+"s";
      SDL_RenderCopy(g_screen,Restart.texture,NULL,&Restart.rect);
      SDL_RenderCopy(g_screen,Quit.texture,NULL,&Quit.rect);
 if(Main.isDie==true){
-    DrawRenderText(g_screen,font,"YOU LOSE",500,200,red);
+    DrawRenderText(g_screen,font,"YOU LOSE",500,200,white);
     paused=true;
+    notpressPaused=true;
+}
+if(numberkill==numberMaxEnemy){
+     DrawRenderText(g_screen,font,"YOU WIN",500,200,black);
+     string thanh_tich="YOUR TIME: "+to_string(Time);
+     DrawRenderText(g_screen,font,thanh_tich.c_str(),470,250,black);
+     paused=true;
+     if(bestTime==0)bestTime=Time;
+     else {
+        if(bestTime>Time){
+            bestTime=Time;
+            SaveTime(bestTime);
+        }
+     }
+     notpressPaused=true;
 }
 }
 //...
@@ -323,9 +350,23 @@ void DrawOnWindow() {
     SDL_RenderPresent(g_screen);
 }
 //...
-
+//hàm doc file điểm đã được lưu
+long long MaxPoint(){
+ifstream file ("BestTime.txt");
+if(!file.is_open()){
+    return 0;
+}
+long long x;
+file>>x;
+file.close();
+return x;
+}
+//...
 // Hàm load texture ban dau cua game
 void first_state(){
+//cap nhat best time tu file txt
+bestTime=MaxPoint();
+
  Map.texture = IMG_LoadTexture(g_screen, "image/bk2.png");
     Map.rect={0,0,SCREEN_WIDTH,SCREEN_HEIGHT};
     if (Map.texture == NULL) {

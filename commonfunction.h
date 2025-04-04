@@ -12,7 +12,7 @@
 #include <ctime>    // Thư viện cho time()
 #include<iostream>
 #include<cstring>
-
+#include<fstream>
 static SDL_Window* g_window=NULL;
 static SDL_Renderer *g_screen=NULL;
 static TTF_Font *font=NULL;
@@ -57,7 +57,7 @@ const int speed_bullet=2;
 const int EXP_WIDTH=165 ;
 const int EXP_HEIGHT=165 ;
 
-const int numberMaxEnemy=100;
+const int numberMaxEnemy=3;
 const int ENEMY_WIDTH=100;
 const int ENEMY_HEIGHT=50;
 
