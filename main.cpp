@@ -1,27 +1,9 @@
 #include "commonfunction.h"
 #include"Plane.cpp"
 #include"backGround.cpp"
+#include"Explosion.cpp"
 using namespace std;
-//cac bien toan cuc
-bool notpressPaused=false;
- bool quit = false;
- bool paused=false ;
-  int blood_main=60;
- int numberenemy=3;
-int numberkill=0;
-long long Time=0;
-long long bestTime=0;
- SDL_Texture* texture_plane_normal = NULL;
- SDL_Texture* texture_plane_fight = NULL;
- SDL_Texture *texture_enemy1=NULL;
- SDL_Texture *texture_enemy2=NULL;
-Uint32 lastTime;
-//..
-//cac vector dan ,enemy
-vector<SDL_Rect>bullets;
-vector<SDL_Rect>enemys;
 
-//...
 // Hàm khởi tạo SDL và SDL_Image va SDL_ttf va SDL_mixer
 bool init() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -64,9 +46,35 @@ SDL_Texture* loadTexture(string path, SDL_Renderer* renderer) {
 }
 //...
 
+//cac bien toan cuc
+bool notpressPaused=false;
+bool quit = false;
+bool paused=false ;
+int blood_main=60;
+int numberenemy=3;
+int numberkill=0;
+long long Time=0;
+long long bestTime=0;
+ SDL_Texture* texture_plane_normal = NULL;
+ SDL_Texture* texture_plane_fight = NULL;
+ SDL_Texture *texture_enemy1=NULL;
+ SDL_Texture *texture_enemy2=NULL;
+ SDL_Texture *texture_exp_main=NULL;
+ SDL_Texture *texture_exp_enemy=NULL;
+Uint32 lastTime;
+Uint32 lastTimeDie;
+ int ENEMY_WIDTH=100;
+ int ENEMY_HEIGHT=50;
 
+//..
+//cac vector dan ,enemy,vu no
+vector<SDL_Rect>bullets;
+vector<SDL_Rect>enemys;
+vector<Explosion>Exp;
 //...
-// Cấu trúc background
+
+
+// Cac doi tuong cua class background
 BackGround Map;
 BackGround Bullet;
 BackGround Continue;
@@ -128,7 +136,6 @@ if(Main.isFighted){
 }
 else Main.texture=texture_plane_normal;
 
-
 }
 //...
 
@@ -156,6 +163,8 @@ Main.rect.x=0;
 Time=0;
 numberkill=0;
 notpressPaused=false;
+ ENEMY_WIDTH=100;
+    ENEMY_HEIGHT=50;
 }
 //xu li su kien ban phim va chuot
 void HandlingEvent() {
@@ -226,31 +235,64 @@ return ((rect1.x<rect2.x+rect2.w)
         &&(rect1.y<rect2.y+rect2.h)
         &&(rect1.y+rect1.h>rect2.y));
 }
+//...
+
+
+
+
 //xu li dan cua main
-void DrawBullet(){
+void DrawBullet() {
+    if (bullets.empty()) return;
 
-if(bullets.empty())return;
-else {
-    for(int i=bullets.size()-1;i>=0;i--){
-        bullets[i].x+=speed_bullet;
-    //kiem tra va cham giua dan cua main va enemy
-    for(int j=enemys.size()-1;j>=0;j--){
-        if(checkVar(bullets[i],enemys[j])){
-            bullets.erase(bullets.begin()+i);
-            enemys.erase(enemys.begin()+j);
-            numberkill ++;
+    // Duyệt qua từng viên đạn từ cuối đến đầu
+    for (int i = bullets.size() - 1; i >= 0; i--) {
+        bullets[i].x += speed_bullet;
+
+        // Kiểm tra va chạm giữa viên đạn và kẻ thù
+        for (int j = enemys.size() - 1; j >= 0; j--) {
+            if (checkVar(bullets[i], enemys[j])) {
+                bullets.erase(bullets.begin() + i); // Xóa viên đạn
+                numberkill++;
+
+                // Thêm vụ nổ
+                Explosion newExpEnemy(texture_exp_enemy, enemys[j].x, enemys[j].y,0);
+                newExpEnemy.lastTime = SDL_GetTicks();
+                Exp.push_back(newExpEnemy);
+
+                // Xóa kẻ thù bị bắn
+                enemys.erase(enemys.begin() + j);
+                break; // Đã xử lý xong, ra khỏi vòng lặp kiểm tra kẻ thù
+            }
         }
-    }
-        if(bullets[i].x>=SCREEN_WIDTH){
-            bullets.erase(bullets.begin()+i);
-        }
-        else {
-            SDL_RenderCopy(g_screen,Bullet.texture,NULL,&bullets[i]);
+
+        // Xóa viên đạn nếu nó ra ngoài màn hình
+        if (bullets[i].x >= SCREEN_WIDTH) {
+            bullets.erase(bullets.begin() + i);
+        } else {
+            SDL_RenderCopy(g_screen, Bullet.texture, NULL, &bullets[i]);
         }
     }
 }
 
+void DrawExp() {
+    // Duyệt qua từng vụ nổ từ cuối đến đầu
+    for (int i = Exp.size() - 1; i >= 0; i--) {
+        Exp[i].rect1.x = (Exp[i].frameNumber) * EXP_WIDTH;
+        SDL_RenderCopy(g_screen, Exp[i].texture, &Exp[i].rect1, &Exp[i].rect2);
+
+        Uint32 CurrentTime = SDL_GetTicks();
+        if (CurrentTime - Exp[i].lastTime > 23) { // Cập nhật frame số vụ nổ
+            Exp[i].frameNumber++;
+            Exp[i].lastTime = CurrentTime;
+        }
+
+        // Nếu vụ nổ đã hoàn thành, xóa nó
+        if (Exp[i].frameNumber == 4) {
+            Exp.erase(Exp.begin() + i);
+        }
+    }
 }
+
 void DrawEnemy(){
     while(enemys.size()<numberenemy){
         SDL_Rect newEnemy={SCREEN_WIDTH+ rand() % 300, rand() % (SCREEN_HEIGHT - ENEMY_HEIGHT-130), ENEMY_WIDTH, ENEMY_HEIGHT};
@@ -269,6 +311,10 @@ void DrawEnemy(){
             }
             else {
                 Main.isDie=true;
+                Explosion newExpMain(texture_exp_main,Main.rect.x,Main.rect.y,0);
+                newExpMain.lastTime=SDL_GetTicks();
+                lastTimeDie=newExpMain.lastTime;
+                Exp.push_back(newExpMain);
             }
              enemys.erase(enemys.begin()+i);
         }
@@ -309,9 +355,16 @@ string best="Best Time:"+to_string(bestTime)+"s";
      SDL_RenderCopy(g_screen,Quit.texture,NULL,&Quit.rect);
 if(Main.isDie==true){
     DrawRenderText(g_screen,font,"YOU LOSE",500,200,white);
-    paused=true;
     notpressPaused=true;
+    Uint32 Current_Time=SDL_GetTicks();
+    if(Current_Time-lastTimeDie>100)paused=true;
 }
+//if(numberkill==numberMaxEnemy/2){
+   // enemys.clear();
+   // Enemy.texture=texture_enemy2;
+   // ENEMY_WIDTH=300;
+    //ENEMY_HEIGHT=163;
+//}
 if(numberkill==numberMaxEnemy){
      DrawRenderText(g_screen,font,"YOU WIN",500,200,black);
      string thanh_tich="YOUR TIME: "+to_string(Time);
@@ -347,6 +400,7 @@ void DrawOnWindow() {
     DrawBloodMain();
     DrawBullet();
     DrawEnemy();
+    DrawExp();
     SDL_RenderPresent(g_screen);
 }
 //...
@@ -394,7 +448,13 @@ bestTime=MaxPoint();
         cout<<"loi tai anh dan ";
     }
     texture_enemy1=loadTexture("image/af1.png",g_screen);
+    texture_enemy2=loadTexture("image/boss3.jpg",g_screen);
     Enemy.texture=texture_enemy1;
+
+    texture_exp_main=loadTexture("image/exp_main.png",g_screen);
+    texture_exp_enemy=loadTexture("image/exp.png",g_screen);
+    if(texture_exp_enemy==NULL)cout<<"null";
+
 }
 //...
 

@@ -32,6 +32,8 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="BestTime.txt" />
+		<Unit filename="Explosion.cpp" />
 		<Unit filename="Plane.cpp" />
 		<Unit filename="backGround.cpp" />
 		<Unit filename="commonfunction.cpp" />

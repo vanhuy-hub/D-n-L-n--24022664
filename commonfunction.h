@@ -57,9 +57,8 @@ const int speed_bullet=2;
 const int EXP_WIDTH=165 ;
 const int EXP_HEIGHT=165 ;
 
-const int numberMaxEnemy=3;
-const int ENEMY_WIDTH=100;
-const int ENEMY_HEIGHT=50;
+const int numberMaxEnemy=30;
+
 
 const int speed_blood=5;
 const int frameDelay = 150 ;
