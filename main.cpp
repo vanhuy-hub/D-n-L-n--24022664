@@ -6,13 +6,19 @@ using namespace std;
 
 // Hàm khởi tạo SDL và SDL_Image va SDL_ttf va SDL_mixer
 bool init() {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO) < 0) {
         return false;
     }
     if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
         return false;
     }
     if(TTF_Init()==-1){
+        return false;
+    }
+    if (Mix_Init(MIX_INIT_MP3)==0){
+        return false;
+    }
+    if(Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,2048)==-1){
         return false;
     }
     g_window = SDL_CreateWindow("huy ngu code", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1200, 600, SDL_WINDOW_SHOWN);
@@ -61,8 +67,14 @@ long long bestTime=0;
  SDL_Texture *texture_enemy2=NULL;
  SDL_Texture *texture_exp_main=NULL;
  SDL_Texture *texture_exp_enemy=NULL;
+ Mix_Chunk *bulletSound=NULL;
+ Mix_Chunk *expEnemySound=NULL;
+ Mix_Chunk *expMainSound=NULL;
+ Mix_Music *WinSound=nullptr;
+ Mix_Music *LoseSound=nullptr;
 Uint32 lastTime;
 Uint32 lastTimeDie;
+Uint32 lasTimeWin;
  int ENEMY_WIDTH=100;
  int ENEMY_HEIGHT=50;
 
@@ -187,9 +199,12 @@ void HandlingEvent() {
         case SDLK_z:
             Main.isFighted=true;
             BackGround newBullet;
-            newBullet.rect={Main.rect.x,Main.rect.y,BULLET_WIDTH,BULLET_HEIGHT};
+            newBullet.rect={Main.rect.x+60,Main.rect.y+40,BULLET_WIDTH,BULLET_HEIGHT};
             if(bullets.size()<=number_bullet_main){
             bullets.push_back(newBullet.rect);
+
+            //tai am thanh bullet
+            Mix_PlayChannel(-1,bulletSound,0);
             }
             break;
             }
@@ -259,9 +274,13 @@ void DrawBullet() {
                 newExpEnemy.lastTime = SDL_GetTicks();
                 Exp.push_back(newExpEnemy);
 
+                 //tai am thanh no enemy
+                  Mix_PlayChannel(-1,expEnemySound,0);
+
                 // Xóa kẻ thù bị bắn
                 enemys.erase(enemys.begin() + j);
                 break; // Đã xử lý xong, ra khỏi vòng lặp kiểm tra kẻ thù
+
             }
         }
 
@@ -272,6 +291,10 @@ void DrawBullet() {
             SDL_RenderCopy(g_screen, Bullet.texture, NULL, &bullets[i]);
         }
     }
+    if(numberkill==numberMaxEnemy){
+        lasTimeWin=SDL_GetTicks();
+    }
+
 }
 
 void DrawExp() {
@@ -308,6 +331,13 @@ void DrawEnemy(){
            {
             if(blood_main-speed_blood>=0){
                 blood_main-=speed_blood;
+                 Explosion newExpEnemy(texture_exp_enemy, enemys[i].x, enemys[i].y,0);
+                newExpEnemy.lastTime = SDL_GetTicks();
+                Exp.push_back(newExpEnemy);
+
+                 //tai am thanh no enemy
+                  Mix_PlayChannel(-1,expEnemySound,0);
+
             }
             else {
                 Main.isDie=true;
@@ -315,6 +345,9 @@ void DrawEnemy(){
                 newExpMain.lastTime=SDL_GetTicks();
                 lastTimeDie=newExpMain.lastTime;
                 Exp.push_back(newExpMain);
+
+                //tai am thanh may bay main no
+                Mix_PlayChannel(-1,expMainSound,0);
             }
              enemys.erase(enemys.begin()+i);
         }
@@ -354,10 +387,11 @@ string best="Best Time:"+to_string(bestTime)+"s";
      SDL_RenderCopy(g_screen,Restart.texture,NULL,&Restart.rect);
      SDL_RenderCopy(g_screen,Quit.texture,NULL,&Quit.rect);
 if(Main.isDie==true){
+    Mix_PlayMusic(LoseSound,0);
     DrawRenderText(g_screen,font,"YOU LOSE",500,200,white);
     notpressPaused=true;
     Uint32 Current_Time=SDL_GetTicks();
-    if(Current_Time-lastTimeDie>100)paused=true;
+    if(Current_Time-lasTimeWin>200)paused=true;
 }
 //if(numberkill==numberMaxEnemy/2){
    // enemys.clear();
@@ -366,10 +400,13 @@ if(Main.isDie==true){
     //ENEMY_HEIGHT=163;
 //}
 if(numberkill==numberMaxEnemy){
+      Mix_PlayMusic(WinSound, 0);
      DrawRenderText(g_screen,font,"YOU WIN",500,200,black);
      string thanh_tich="YOUR TIME: "+to_string(Time);
      DrawRenderText(g_screen,font,thanh_tich.c_str(),470,250,black);
-     paused=true;
+    notpressPaused=true;
+    Uint32 Current_Time=SDL_GetTicks();
+    if(Current_Time-lastTimeDie>200)paused=true;
      if(bestTime==0)bestTime=Time;
      else {
         if(bestTime>Time){
@@ -395,7 +432,7 @@ void DrawOnWindow() {
     EventPlayer();
     Timer();
     SDL_RenderCopy(g_screen, Map.texture, &Map.rect, NULL);
-     SDL_RenderCopy(g_screen, Main.texture, NULL, &Main.rect);
+    if(!Main.isDie) SDL_RenderCopy(g_screen, Main.texture, NULL, &Main.rect);
      DrawMenu();
     DrawBloodMain();
     DrawBullet();
@@ -455,6 +492,15 @@ bestTime=MaxPoint();
     texture_exp_enemy=loadTexture("image/exp.png",g_screen);
     if(texture_exp_enemy==NULL)cout<<"null";
 
+    bulletSound=Mix_LoadWAV("sound/bullet.wav");
+    expEnemySound=Mix_LoadWAV("sound/exp_enemy.wav");
+    expMainSound=Mix_LoadWAV("sound/exp_main.wav");
+    WinSound=Mix_LoadMUS("sound/win_sound.mp3");
+    LoseSound=Mix_LoadMUS("sound/lose_sound.mp3");
+    if(bulletSound==NULL||expEnemySound==NULL||expMainSound==NULL||WinSound==NULL||LoseSound==NULL){
+        cout<<"sound null";
+    }
+
 }
 //...
 
@@ -465,6 +511,8 @@ void close() {
     SDL_DestroyRenderer(g_screen);
     SDL_DestroyWindow(g_window);
     SDL_Quit();
+    Mix_CloseAudio();
+    Mix_Quit();
 }
 //...
 
