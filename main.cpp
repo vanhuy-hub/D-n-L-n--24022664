@@ -57,6 +57,7 @@ bool notpressPaused=false;
 bool quit = false;
 bool paused=false ;
 int blood_main=60;
+int blood_boss=100;
 int numberenemy=3;
 int numberkill=0;
 long long Time=0;
@@ -67,22 +68,27 @@ long long bestTime=0;
  SDL_Texture *texture_enemy2=NULL;
  SDL_Texture *texture_exp_main=NULL;
  SDL_Texture *texture_exp_enemy=NULL;
+ SDL_Texture *texture_boss=NULL;
+ SDL_Texture *texture_bullet_boss=NULL;
  Mix_Chunk *bulletSound=NULL;
  Mix_Chunk *expEnemySound=NULL;
  Mix_Chunk *expMainSound=NULL;
+ Mix_Chunk *bulletBossSound=NULL;
  Mix_Music *WinSound=nullptr;
  Mix_Music *LoseSound=nullptr;
+
 Uint32 lastTime;
 Uint32 lastTimeDie;
-Uint32 lasTimeWin;
- int ENEMY_WIDTH=100;
- int ENEMY_HEIGHT=50;
+Uint32 lastTimeWin;
+Uint32 lastBossAppear;
+
 
 //..
 //cac vector dan ,enemy,vu no
 vector<SDL_Rect>bullets;
 vector<SDL_Rect>enemys;
 vector<Explosion>Exp;
+vector<SDL_Rect>bulletBoss;
 //...
 
 
@@ -111,7 +117,7 @@ class Player:public Plane {
 };
 Plane Enemy;
 Player Main;
-
+Player Boss;
 //xu li nguoi choi di chuyen
 
 void EventPlayer(){
@@ -130,12 +136,8 @@ if(Main.moveRight==true){
 if(Main.rect.x<0){
     Main.rect.x=0;
 }
-if(Main.rect.x>600){
-    Main.rect.x=600;
-    Map.rect.x+=speed_map;//xu li map di chuyen theo nhan vat
-    if( Map.rect.x>3600){
-        Map.rect.x=3600;
-    }
+if(Main.rect.x>1200-50){
+    Main.rect.x=1200-50;
 }
 if(Main.rect.y>=470){
     Main.rect.y=470;
@@ -147,6 +149,7 @@ if(Main.isFighted){
     Main.texture=texture_plane_fight;
 }
 else Main.texture=texture_plane_normal;
+
 
 }
 //...
@@ -165,18 +168,21 @@ if(currentTime-lastTime>=1000){
 
 //ham xu li restart
 void restart(){
+blood_boss=100;
 blood_main=60;
+Boss.isDie=false;
 Main.isDie=false;
 paused=false;
 enemys.clear();
 bullets.clear();
+bulletBoss.clear();
 Map.rect.x=0;
 Main.rect.x=0;
+Boss.rect.y=-100;
 Time=0;
 numberkill=0;
 notpressPaused=false;
- ENEMY_WIDTH=100;
-    ENEMY_HEIGHT=50;
+
 }
 //xu li su kien ban phim va chuot
 void HandlingEvent() {
@@ -291,9 +297,7 @@ void DrawBullet() {
             SDL_RenderCopy(g_screen, Bullet.texture, NULL, &bullets[i]);
         }
     }
-    if(numberkill==numberMaxEnemy){
-        lasTimeWin=SDL_GetTicks();
-    }
+
 
 }
 
@@ -304,7 +308,7 @@ void DrawExp() {
         SDL_RenderCopy(g_screen, Exp[i].texture, &Exp[i].rect1, &Exp[i].rect2);
 
         Uint32 CurrentTime = SDL_GetTicks();
-        if (CurrentTime - Exp[i].lastTime > 23) { // Cập nhật frame số vụ nổ
+        if (CurrentTime - Exp[i].lastTime > 24) { // Cập nhật frame số vụ nổ
             Exp[i].frameNumber++;
             Exp[i].lastTime = CurrentTime;
         }
@@ -314,6 +318,82 @@ void DrawExp() {
             Exp.erase(Exp.begin() + i);
         }
     }
+}
+void DrawBoss(){
+    Uint32 current_time_boss=SDL_GetTicks();
+    if(current_time_boss-lastBossAppear>9){
+        if(Boss.rect.y>Main.rect.y+5){
+            Boss.rect.y-=2;
+        }
+        else if(Boss.rect.y<Main.rect.y-5) {
+            Boss.rect.y+=2;
+        }
+        else {
+           SDL_Rect newbullet={Boss.rect.x,Boss.rect.y+50,48,19};
+           if(bulletBoss.size()<2){
+           bulletBoss.push_back(newbullet);
+           Mix_PlayChannel(-1,bulletBossSound,0);}
+        }
+        lastBossAppear=current_time_boss;
+    }
+    for(int i=bullets.size()-1;i>=0;i--){
+        if(checkVar(bullets[i],Boss.rect)){
+             if(blood_boss-50>=0){
+                blood_boss-=50;
+                 Explosion newExpEnemy(texture_exp_enemy, bulletBoss[i].x-25, bulletBoss[i].y-25,0);
+                  Mix_PlayChannel(-1,expEnemySound,0);
+
+            }
+            else {
+                Boss.isDie=true;
+                lastTimeWin=SDL_GetTicks();
+                Explosion newExpMain(texture_exp_main,Boss.rect.x+30,Boss.rect.y+30,0);
+                newExpMain.lastTime=SDL_GetTicks();
+                Exp.push_back(newExpMain);
+
+                //tai am thanh may bay main no
+                Mix_PlayChannel(-1,expMainSound,0);
+            }
+             bullets.erase(bullets.begin()+i);
+          }
+    }
+    SDL_RenderCopy(g_screen,Boss.texture,NULL,&Boss.rect);
+}
+void DrawBulletBoss(){
+for(int i=bulletBoss.size()-1;i>=0;i--){
+    bulletBoss[i].x-=speed_bullet;
+    if(bulletBoss[i].x==-20){
+        bulletBoss.erase(bulletBoss.begin()+i);
+    }
+    else if(checkVar(bulletBoss[i],Main.rect))
+           {
+            if(blood_main-2>=0){
+                blood_main-=2;
+                 Explosion newExpEnemy(texture_exp_enemy, bulletBoss[i].x-25, bulletBoss[i].y-25,0);
+                newExpEnemy.lastTime = SDL_GetTicks();
+                Exp.push_back(newExpEnemy);
+
+                 //tai am thanh no enemy
+                  Mix_PlayChannel(-1,expEnemySound,0);
+
+            }
+            else {
+                Main.isDie=true;
+                Explosion newExpMain(texture_exp_main,Main.rect.x,Main.rect.y,0);
+                newExpMain.lastTime=SDL_GetTicks();
+                lastTimeDie=newExpMain.lastTime;
+                 SDL_Delay(10);
+                Exp.push_back(newExpMain);
+
+                //tai am thanh may bay main no
+                Mix_PlayChannel(-1,expMainSound,0);
+            }
+             bulletBoss.erase(bulletBoss.begin()+i);
+           }
+    else {
+        SDL_RenderCopy(g_screen,texture_bullet_boss,NULL,&bulletBoss[i]);
+    }
+}
 }
 
 void DrawEnemy(){
@@ -329,10 +409,11 @@ void DrawEnemy(){
         }
            if(checkVar(enemys[i],Main.rect))
            {
-            if(blood_main-speed_blood>=0){
-                blood_main-=speed_blood;
+            if(blood_main-3>=0){
+                blood_main-=3;
                  Explosion newExpEnemy(texture_exp_enemy, enemys[i].x, enemys[i].y,0);
                 newExpEnemy.lastTime = SDL_GetTicks();
+
                 Exp.push_back(newExpEnemy);
 
                  //tai am thanh no enemy
@@ -377,7 +458,7 @@ void SaveTime(long long x){
 //...
 //ve menu
 void DrawMenu(){
-string kill="Kill:"+to_string(numberkill)+"/"+to_string(numberMaxEnemy);
+string kill="Kill:"+to_string(numberkill);
 string time_current="Time:"+to_string(Time)+"s";
 string best="Best Time:"+to_string(bestTime)+"s";
      DrawRenderText(g_screen,font,kill.c_str(),0,0,white);
@@ -391,22 +472,17 @@ if(Main.isDie==true){
     DrawRenderText(g_screen,font,"YOU LOSE",500,200,white);
     notpressPaused=true;
     Uint32 Current_Time=SDL_GetTicks();
-    if(Current_Time-lasTimeWin>200)paused=true;
+    if(Current_Time-lastTimeDie>300)paused=true;
 }
-//if(numberkill==numberMaxEnemy/2){
-   // enemys.clear();
-   // Enemy.texture=texture_enemy2;
-   // ENEMY_WIDTH=300;
-    //ENEMY_HEIGHT=163;
-//}
-if(numberkill==numberMaxEnemy){
+
+if(Boss.isDie){
       Mix_PlayMusic(WinSound, 0);
      DrawRenderText(g_screen,font,"YOU WIN",500,200,black);
      string thanh_tich="YOUR TIME: "+to_string(Time);
      DrawRenderText(g_screen,font,thanh_tich.c_str(),470,250,black);
     notpressPaused=true;
     Uint32 Current_Time=SDL_GetTicks();
-    if(Current_Time-lastTimeDie>200)paused=true;
+    if(Current_Time-lastTimeWin>300)paused=true;
      if(bestTime==0)bestTime=Time;
      else {
         if(bestTime>Time){
@@ -419,10 +495,13 @@ if(numberkill==numberMaxEnemy){
 }
 //...
 //ham ve thanh mau cua player
-void DrawBloodMain(){
+void DrawBlood(){
 Main.blood={Main.rect.x+7,Main.rect.y-10,blood_main,10};
+Boss.blood={Boss.rect.x+7,Boss.rect.y-20,blood_boss,15};
 SDL_SetRenderDrawColor(g_screen,219,26,33,255);
 SDL_RenderFillRect(g_screen,&Main.blood);
+SDL_SetRenderDrawColor(g_screen,194,23,29,255);
+SDL_RenderFillRect(g_screen,&Boss.blood);
 //neu MainDie
 
 }
@@ -434,9 +513,11 @@ void DrawOnWindow() {
     SDL_RenderCopy(g_screen, Map.texture, &Map.rect, NULL);
     if(!Main.isDie) SDL_RenderCopy(g_screen, Main.texture, NULL, &Main.rect);
      DrawMenu();
-    DrawBloodMain();
+    DrawBlood();
     DrawBullet();
     DrawEnemy();
+    if(!Boss.isDie)DrawBoss();
+    DrawBulletBoss();
     DrawExp();
     SDL_RenderPresent(g_screen);
 }
@@ -492,7 +573,15 @@ bestTime=MaxPoint();
     texture_exp_enemy=loadTexture("image/exp.png",g_screen);
     if(texture_exp_enemy==NULL)cout<<"null";
 
+    texture_boss=IMG_LoadTexture(g_screen,"image/boss.png");
+    Boss.texture=texture_boss;
+    lastBossAppear=SDL_GetTicks();
+    Boss.rect={1050,0,BOSS_WIDTH,BOSS_HEIGHT};
+
+    texture_bullet_boss=IMG_LoadTexture(g_screen,"image/bullet_boss.png");
+
     bulletSound=Mix_LoadWAV("sound/bullet.wav");
+    bulletBossSound=Mix_LoadWAV("sound/Laser.wav");
     expEnemySound=Mix_LoadWAV("sound/exp_enemy.wav");
     expMainSound=Mix_LoadWAV("sound/exp_main.wav");
     WinSound=Mix_LoadMUS("sound/win_sound.mp3");
