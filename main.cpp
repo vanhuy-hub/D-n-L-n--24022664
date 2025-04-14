@@ -29,7 +29,7 @@ bool init() {
     if (g_screen == NULL) {
         return false;
     }
-    font=TTF_OpenFont("font/arial.ttf",30);
+    font=TTF_OpenFont("font/arial_v2.ttf",30);
     if(font==NULL){
         return false;
     }
@@ -55,13 +55,15 @@ SDL_Texture* loadTexture(string path, SDL_Renderer* renderer) {
 //cac bien toan cuc
 bool notpressPaused=false;
 bool quit = false;
-bool paused=false ;
+bool paused=false;
 int blood_main=60;
 int blood_boss=100;
 int numberenemy=3;
 int numberkill=0;
 long long Time=0;
 long long bestTime=0;
+static bool musicStarted = false;
+int map_x=0;
  SDL_Texture* texture_plane_normal = NULL;
  SDL_Texture* texture_plane_fight = NULL;
  SDL_Texture *texture_enemy1=NULL;
@@ -76,12 +78,12 @@ long long bestTime=0;
  Mix_Chunk *bulletBossSound=NULL;
  Mix_Music *WinSound=nullptr;
  Mix_Music *LoseSound=nullptr;
-
+Mix_Music *FreeFireSound=nullptr;
 Uint32 lastTime;
 Uint32 lastTimeDie;
 Uint32 lastTimeWin;
 Uint32 lastBossAppear;
-
+Uint32 lastTimeMap;
 
 //..
 //cac vector dan ,enemy,vu no
@@ -150,7 +152,11 @@ if(Main.isFighted){
 }
 else Main.texture=texture_plane_normal;
 
-
+Uint32 current_time=SDL_GetTicks();
+if(current_time-lastTimeMap>10){
+    Map.rect.x++;
+    lastTimeMap=current_time;
+}
 }
 //...
 
@@ -182,7 +188,7 @@ Boss.rect.y=-100;
 Time=0;
 numberkill=0;
 notpressPaused=false;
-
+ musicStarted = false;
 }
 //xu li su kien ban phim va chuot
 void HandlingEvent() {
@@ -246,7 +252,28 @@ void HandlingEvent() {
     }
 
         }
+//ve MAP
+void DrawMap() {
+    Uint32 current_time = SDL_GetTicks();
+    if (current_time - lastTimeMap > 3) {
+        Map.rect.x += 1;
+        Map.rect.x %= MAP_WIDTH; // Cuộn vô hạn trong giới hạn ảnh
+        lastTimeMap = current_time;
+    }
 
+    int w1 = std::min(MAP_WIDTH - Map.rect.x, SCREEN_WIDTH);
+
+    SDL_Rect src1 = { Map.rect.x, 0, w1, Map.rect.h };
+    SDL_Rect dst1 = { 0, 0, w1, Map.rect.h };
+    SDL_RenderCopy(g_screen, Map.texture, &src1, &dst1);
+
+    if (w1 < SCREEN_WIDTH) {
+        SDL_Rect src2 = { 0, 0, SCREEN_WIDTH - w1, Map.rect.h };
+        SDL_Rect dst2 = { w1, 0, src2.w, src2.h };
+        SDL_RenderCopy(g_screen, Map.texture, &src2, &dst2);
+    }
+}
+//...
 //...
 //ham kiem tra check var giua 2 texture
 bool checkVar(SDL_Rect rect1,SDL_Rect rect2)
@@ -456,11 +483,28 @@ void SaveTime(long long x){
    file.close();
 }
 //...
+//hàm doc file điểm đã được lưu
+long long MaxPoint(){
+ifstream file ("BestTime.txt");
+if(!file.is_open()){
+    return 0;
+}
+long long x;
+file>>x;
+file.close();
+return x;
+}
+//...
 //ve menu
 void DrawMenu(){
+
+if (!musicStarted) {
+    Mix_PlayMusic(FreeFireSound, -1); // -1 để lặp vô hạn nếu muốn
+    musicStarted = true;
+}
 string kill="Kill:"+to_string(numberkill);
-string time_current="Time:"+to_string(Time)+"s";
-string best="Best Time:"+to_string(bestTime)+"s";
+string time_current="Time:"+to_string(Time)+" s";
+string best="Best Time:"+to_string(bestTime)+" s";
      DrawRenderText(g_screen,font,kill.c_str(),0,0,white);
      DrawRenderText(g_screen,font,time_current.c_str(),0,30,white);
      DrawRenderText(g_screen,font,best.c_str(),0,60,black);
@@ -487,7 +531,7 @@ if(Boss.isDie){
      else {
         if(bestTime>Time){
             bestTime=Time;
-            SaveTime(bestTime);
+            SaveTime(Time);
         }
      }
      notpressPaused=true;
@@ -510,7 +554,7 @@ void DrawOnWindow() {
     SDL_RenderClear(g_screen);
     EventPlayer();
     Timer();
-    SDL_RenderCopy(g_screen, Map.texture, &Map.rect, NULL);
+    DrawMap();
     if(!Main.isDie) SDL_RenderCopy(g_screen, Main.texture, NULL, &Main.rect);
      DrawMenu();
     DrawBlood();
@@ -522,23 +566,12 @@ void DrawOnWindow() {
     SDL_RenderPresent(g_screen);
 }
 //...
-//hàm doc file điểm đã được lưu
-long long MaxPoint(){
-ifstream file ("BestTime.txt");
-if(!file.is_open()){
-    return 0;
-}
-long long x;
-file>>x;
-file.close();
-return x;
-}
-//...
+
 // Hàm load texture ban dau cua game
 void first_state(){
 //cap nhat best time tu file txt
 bestTime=MaxPoint();
-
+lastTimeMap=SDL_GetTicks();
  Map.texture = IMG_LoadTexture(g_screen, "image/bk2.png");
     Map.rect={0,0,SCREEN_WIDTH,SCREEN_HEIGHT};
     if (Map.texture == NULL) {
@@ -586,6 +619,8 @@ bestTime=MaxPoint();
     expMainSound=Mix_LoadWAV("sound/exp_main.wav");
     WinSound=Mix_LoadMUS("sound/win_sound.mp3");
     LoseSound=Mix_LoadMUS("sound/lose_sound.mp3");
+    FreeFireSound=Mix_LoadMUS("sound/freefire.mp3");
+
     if(bulletSound==NULL||expEnemySound==NULL||expMainSound==NULL||WinSound==NULL||LoseSound==NULL){
         cout<<"sound null";
     }

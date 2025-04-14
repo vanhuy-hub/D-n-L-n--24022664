@@ -2,7 +2,7 @@
 1743336289 source:d:\plane game\commonfunction.cpp
 	"commonfunction.h"
 
-1744564055 d:\plane game\commonfunction.h
+1744623399 d:\plane game\commonfunction.h
 	<algorithm>
 	<string>
 	<SDL.h>
@@ -17,7 +17,7 @@
 	<cstring>
 	<fstream>
 
-1744565485 source:d:\plane game\main.cpp
+1744623346 source:d:\plane game\main.cpp
 	"commonfunction.h"
 	"Plane.cpp"
 	"backGround.cpp"
