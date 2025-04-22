@@ -43,7 +43,7 @@ const int QUIT_WIDTH=200;
 const int QUIT_HEIGHT=88;
 
 const double speed_enemy=1;
-const int number_bullet_main=1;
+
 
 
 const double speed_plane=1;
@@ -51,8 +51,8 @@ const float MAP_SCROLL_SPEED = 1;
 const int ENEMY_WIDTH=100;
  const int ENEMY_HEIGHT=50;
 
-const int BULLET_WIDTH=15;
-const int BULLET_HEIGHT=15;
+const int BULLET_WIDTH=50;
+const int BULLET_HEIGHT=22;
 const int speed_bullet=2;
 
 const int EXP_WIDTH=165 ;
