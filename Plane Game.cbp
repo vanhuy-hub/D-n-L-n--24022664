@@ -33,6 +33,7 @@
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Unit filename="BestTime.txt" />
+		<Unit filename="Enemy.cpp" />
 		<Unit filename="Explosion.cpp" />
 		<Unit filename="Plane.cpp" />
 		<Unit filename="backGround.cpp" />

@@ -17,11 +17,12 @@
 	<cstring>
 	<fstream>
 
-1745353033 source:d:\plane game\main.cpp
+1745394275 source:d:\plane game\main.cpp
 	"commonfunction.h"
 	"Plane.cpp"
 	"backGround.cpp"
 	"Explosion.cpp"
+	"Enemy.cpp"
 
 1743336289 d:\plane game\commonfunction.cpp
 	"commonfunction.h"
@@ -42,5 +43,11 @@
 	"commonfunction.h"
 
 1743743520 d:\plane game\explosion.cpp
+	"commonfunction.h"
+
+1745385030 source:d:\plane game\enemy.cpp
+	"commonfunction.h"
+
+1745385030 d:\plane game\enemy.cpp
 	"commonfunction.h"
 
