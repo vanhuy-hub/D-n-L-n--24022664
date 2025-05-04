@@ -1,4 +1,7 @@
+#ifndef BACK_GROUND_
+#define BACK_GROUND_
 #include"commonfunction.h"
+
 class BackGround {
 public:
     SDL_Texture* texture;
@@ -10,3 +13,4 @@ public:
     }
 
 };
+#endif // BACK_GROUND_

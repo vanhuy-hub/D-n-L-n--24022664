@@ -1,5 +1,6 @@
 #include "commonfunction.h"
-#include"Plane.cpp"
+#include"PlaneBoss.cpp"
+#include"Player.cpp"
 #include"backGround.cpp"
 #include"Explosion.cpp"
 #include"Enemy.cpp"
@@ -71,7 +72,9 @@ bool quit = false;
 bool paused=false;
 bool SwapBullet=true;
 bool PressX=false;
- int number_bullet_main=1;
+bool NhapName=false;
+
+int number_bullet_main=1;
 int blood_main=60;
 int energy_man=2;
 int blood_boss=100;
@@ -134,29 +137,13 @@ BackGround BoxHp;
 BackGround Bullet2;
 BackGround Back;
 BackGround BkFirst;
+BackGround Name;
 //...
 
 //cau truc may bay main va dich
-class Player:public Plane
-{
-public:
-    SDL_Rect energy;
-    SDL_Rect blood;
-    bool isFighted;
-    bool moveUp,moveDown,moveRight,moveLeft;
-    bool isFullEnergy;
-    Player()
-    {
-        texture = NULL;
-        rect = {0, 200, PLANE_WIDTH, PLANE_HEIGHT};
-        isFighted=isFullEnergy = false;
-        isDie = false;
-        moveUp=moveDown=moveRight=moveLeft=false;
-    }
-};
-//Plane Enemy;
+
 Player Main;
-Player Boss;
+PlaneBoss  Boss;
 //xu li nguoi choi di chuyen
 
 void EventPlayer()
@@ -244,45 +231,51 @@ void restart()
     musicStarted = false;
 }
 //xu li su kien ban phim va chuot
-void HandlingEventFirst(){
- while (SDL_PollEvent(&g_event))
+void HandlingEventFirst()
+{
+    while (SDL_PollEvent(&g_event))
     {
         if (g_event.type == SDL_QUIT)
         {
             quit = true;
-
         }
-    else if(g_event.type==SDL_MOUSEBUTTONDOWN)
+        else if(g_event.type==SDL_MOUSEBUTTONDOWN)
         {
             int x=g_event.button.x,y=g_event.button.y;
-           std:: cout <<x<<" "<<y<<endl;
-            if (y>405&&y<550){
-                if(x>50&&x<300){
+            std:: cout <<x<<" "<<y<<endl;
+            if (y>405&&y<550)
+            {
+                if(x>50&&x<300)
+                {
                     Map.texture=TextureMap[0];
                     isScreenMain=true;
                     restart();
                 }
-                else if(x>320&&x<580){
-                     Map.texture=TextureMap[1];
-                     isScreenMain=true;
-                     restart();
+                else if(x>320&&x<580)
+                {
+                    Map.texture=TextureMap[1];
+                    isScreenMain=true;
+                    restart();
                 }
-                else if(x>600&&x<860){
-                     Map.texture=TextureMap[2];
-                     isScreenMain=true;
-                     restart();
+                else if(x>600&&x<860)
+                {
+                    Map.texture=TextureMap[2];
+                    isScreenMain=true;
+                    restart();
                 }
-                else if(x>900&&x<1180){
-                     Map.texture=TextureMap[3];
-                     isScreenMain=true;
-                     restart();
+                else if(x>900&&x<1180)
+                {
+                    Map.texture=TextureMap[3];
+                    isScreenMain=true;
+                    restart();
                 }
             }
-            else if(x>1100&&y<100){
+            else if(x>1100&&y<100)
+            {
                 isScreenMain=true;
             }
         }
-}
+    }
 }
 void HandlingEvent()
 {
@@ -311,7 +304,8 @@ void HandlingEvent()
                 case SDLK_RIGHT:
                     Main.moveRight=true;
                     break;
-                case SDLK_z:{
+                case SDLK_z:
+                {
                     Main.isFighted=true;
                     BackGround newBullet;
                     newBullet.rect= {Main.rect.x+60,Main.rect.y+40,BULLET_WIDTH,BULLET_HEIGHT};
@@ -323,19 +317,20 @@ void HandlingEvent()
                         Mix_PlayChannel(-1,bulletSound,0);
                     }
                 }
-                    break;
+                break;
                 case SDLK_x:
-    if(Main.isFullEnergy){
-        Main.isFullEnergy = false;
-        PressX = true;
-        energy_man = 2;
-        lastTimeX = SDL_GetTicks();
-        Bullet2.rect = {-150 , rand()%600 , 120, 40}; // bắn từ vị trí máy bay chính
-        Mix_PlayChannel(-1,laze,0);
-    }
-    break;
+                    if(Main.isFullEnergy)
+                    {
+                        Main.isFullEnergy = false;
+                        PressX = true;
+                        energy_man = 2;
+                        lastTimeX = SDL_GetTicks();
+                        Bullet2.rect = {-150, rand()%600, 120, 40};   // bắn từ vị trí máy bay chính
+                        Mix_PlayChannel(-1,laze,0);
+                    }
+                    break;
+                }
             }
-        }
         }
         else if(g_event.type==SDL_KEYUP&&g_event.key.repeat==0)
         {
@@ -373,7 +368,8 @@ void HandlingEvent()
                 {
                     restart();
                 }
-                else if(x>5&&x<60){
+                else if(x>5&&x<60)
+                {
                     isScreenMain=false;
                 }
             }
@@ -424,27 +420,32 @@ bool checkVar(SDL_Rect rect1,SDL_Rect rect2)
 void DrawBullet()
 {
     if (bullets.empty()) return;
-    if(numberkill<10){
+    if(numberkill<10)
+    {
         number_bullet_main=1;
         Bullet.texture=texture_bullet1;
     }
-    else if(numberkill==10&&SwapBullet==true){
+    else if(numberkill==10&&SwapBullet==true)
+    {
         bullets.clear();
         SwapBullet=false;
         number_bullet_main=2;
     }
-    else if(numberkill>10&&numberkill<25){
-         SwapBullet==true;
-         Bullet.texture=texture_bullet2;
+    else if(numberkill>10&&numberkill<25)
+    {
+        SwapBullet==true;
+        Bullet.texture=texture_bullet2;
     }
-    else if(numberkill==25&&SwapBullet==true){
+    else if(numberkill==25&&SwapBullet==true)
+    {
         bullets.clear();
         SwapBullet=false;
         number_bullet_main=3;
     }
-    else if(numberkill>25){
+    else if(numberkill>25)
+    {
         SwapBullet==true;
-         Bullet.texture=texture_bullet3;
+        Bullet.texture=texture_bullet3;
     }
     // Duyệt qua từng viên đạn từ cuối đến đầu
     for (int i = bullets.size() - 1; i >= 0; i--)
@@ -456,10 +457,12 @@ void DrawBullet()
         {
             if (checkVar(bullets[i], enemys[j].rect))
             {
-                if(energy_man<50){
-                energy_man+=5;
+                if(energy_man<50)
+                {
+                    energy_man+=5;
                 }
-                else {
+                else
+                {
                     Main.isFullEnergy=true;
                 }
                 bullets.erase(bullets.begin() + i); // Xóa viên đạn
@@ -517,16 +520,20 @@ void DrawExp()
         }
     }
 }
-void DrawBullet2() {
+void DrawBullet2()
+{
     if (!PressX) return;
 
     Uint32 currentTime = SDL_GetTicks();
-    if (currentTime - lastTimeX > 6 ) {
+    if (currentTime - lastTimeX > 6 )
+    {
         // Move đạn hướng về Boss
-        if (Bullet2.rect.y > Boss.rect.y + 5) {
+        if (Bullet2.rect.y > Boss.rect.y + 5)
+        {
             Bullet2.rect.y -= 2;
         }
-        else if (Bullet2.rect.y < Boss.rect.y - 5) {
+        else if (Bullet2.rect.y < Boss.rect.y - 5)
+        {
             Bullet2.rect.y += 2;
         }
 
@@ -535,28 +542,29 @@ void DrawBullet2() {
     }
 
     // Va chạm với Boss
-    if (checkVar(Boss.rect, Bullet2.rect)) {
+    if (checkVar(Boss.rect, Bullet2.rect))
+    {
 
-         if(blood_boss-10>=0)
-            {
-                blood_boss-=10;
-                Explosion newExpEnemy(texture_exp_enemy, Boss.rect.x+15, Boss.rect.x+25,0);
-                Exp.push_back(newExpEnemy);
-                Mix_PlayChannel(-1,expEnemySound,0);
+        if(blood_boss-10>=0)
+        {
+            blood_boss-=10;
+            Explosion newExpEnemy(texture_exp_enemy, Boss.rect.x+15, Boss.rect.x+25,0);
+            Exp.push_back(newExpEnemy);
+            Mix_PlayChannel(-1,expEnemySound,0);
 
-            }
-            else
-            {
-                Boss.isDie=true;
-                lastTimeWin=SDL_GetTicks();
-                Explosion newExpMain(texture_exp_main,Boss.rect.x+30,Boss.rect.y+30,0);
-                newExpMain.lastTime=SDL_GetTicks();
-                Exp.push_back(newExpMain);
+        }
+        else
+        {
+            Boss.isDie=true;
+            lastTimeWin=SDL_GetTicks();
+            Explosion newExpMain(texture_exp_main,Boss.rect.x+30,Boss.rect.y+30,0);
+            newExpMain.lastTime=SDL_GetTicks();
+            Exp.push_back(newExpMain);
 
-                //tai am thanh may bay main no
-                Mix_PlayChannel(-1,expMainSound,0);
-            }
-             PressX = false; // đạn biến mất khi trúng Boss
+            //tai am thanh may bay main no
+            Mix_PlayChannel(-1,expMainSound,0);
+        }
+        PressX = false; // đạn biến mất khi trúng Boss
         // xử lý va chạm nếu muốn
     }
 
@@ -657,18 +665,25 @@ void DrawBulletBoss()
     }
 }
 
-void DrawEnemy() {
+void DrawEnemy()
+{
     // Cập nhật số lượng enemy dựa theo kill
-    if (numberkill <= 6) {
+    if (numberkill <= 6)
+    {
         numberenemy = 3;
-    } else if (numberkill < 20) {
+    }
+    else if (numberkill < 20)
+    {
         numberenemy = 4;
-    } else {
+    }
+    else
+    {
         numberenemy = 5;
     }
 
     // Thêm enemy mới nếu chưa đủ số lượng
-    while (enemys.size() < static_cast<size_t>(numberenemy)) {
+    while (enemys.size() < static_cast<size_t>(numberenemy))
+    {
         Enemy newEnemy;
         newEnemy.rect = {SCREEN_WIDTH + rand() % 300, rand() % (SCREEN_HEIGHT - ENEMY_HEIGHT - 130), 100, 55};
         newEnemy.textureIndex = rand() % Enemys.size();  // Chọn texture
@@ -676,18 +691,21 @@ void DrawEnemy() {
     }
 
     // Duyệt ngược để dễ xóa
-    for (int i = enemys.size() - 1; i >= 0; i--) {
+    for (int i = enemys.size() - 1; i >= 0; i--)
+    {
         // Di chuyển enemy
         enemys[i].rect.x -= (numberkill < 15 ? 1 : 2);
 
         // Nếu enemy ra khỏi màn hình
-        if (enemys[i].rect.x < -ENEMY_WIDTH) {
+        if (enemys[i].rect.x < -ENEMY_WIDTH)
+        {
             enemys.erase(enemys.begin() + i);
             continue;
         }
 
         // Nếu bị bắn bởi Bullet2
-        if (checkVar(enemys[i].rect, Bullet2.rect)) {
+        if (checkVar(enemys[i].rect, Bullet2.rect))
+        {
             Explosion newExp(texture_exp_enemy, enemys[i].rect.x, enemys[i].rect.y, 0);
             newExp.lastTime = SDL_GetTicks();
             Exp.push_back(newExp);
@@ -697,14 +715,18 @@ void DrawEnemy() {
         }
 
         // Nếu va chạm với máy bay chính
-        if (checkVar(enemys[i].rect, Main.rect)) {
-            if (blood_main >= 3) {
+        if (checkVar(enemys[i].rect, Main.rect))
+        {
+            if (blood_main >= 3)
+            {
                 blood_main -= 3;
                 Explosion newExp(texture_exp_enemy, enemys[i].rect.x, enemys[i].rect.y, 0);
                 newExp.lastTime = SDL_GetTicks();
                 Exp.push_back(newExp);
                 Mix_PlayChannel(-1, expEnemySound, 0);
-            } else {
+            }
+            else
+            {
                 Main.isDie = true;
                 Explosion newExp(texture_exp_main, Main.rect.x, Main.rect.y, 0);
                 newExp.lastTime = SDL_GetTicks();
@@ -724,15 +746,16 @@ void DrawEnemy() {
 
 //...
 //ham ve chu
-void DrawRenderText(SDL_Renderer* renderer, TTF_Font* font, const char* text, int x, int y, SDL_Color color)
+void DrawRenderText(SDL_Renderer* renderer, TTF_Font* font, const string &text, int x, int y, SDL_Color color)
 {
-    SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-
-    SDL_Rect destRect = { x, y, surface->w, surface->h };
-    SDL_RenderCopy(renderer, texture, nullptr, &destRect);
-
-    SDL_FreeSurface(surface);
+    SDL_Surface *textSurface = TTF_RenderText_Solid(font, text.c_str(), white);
+    if(textSurface==NULL)return;
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    if(texture==NULL)return;
+    SDL_Rect textRect = {x, y, textSurface->w, textSurface->h};  // Vị trí và kích thước của văn bản
+    SDL_RenderCopy(renderer, texture, NULL,&textRect);  // Render texture
+    // Giải phóng surface và texture sau khi sử dụng
+    SDL_FreeSurface(textSurface);
     SDL_DestroyTexture(texture);
 }
 //ham luu diem
@@ -744,6 +767,34 @@ void SaveTime(long long x)
     file.close();
 }
 //...
+void DrawName()
+{
+    static string textName = "";  // Giữ lại text giữa các frame
+
+    while (SDL_PollEvent(&g_event))
+    {
+        if (g_event.type == SDL_QUIT)
+        {
+            quit = true;
+        }
+        else if (g_event.type == SDL_KEYDOWN && !NhapName)
+        {
+            SDL_Keycode key = g_event.key.keysym.sym;
+
+            if (key == SDLK_BACKSPACE && !textName.empty())
+            {
+                textName.pop_back();
+            }
+            else if (key >= SDLK_SPACE && key <= SDLK_z)
+            {
+                textName += static_cast<char>(key);
+            }
+        }
+    }
+
+    DrawRenderText(g_screen, font, textName, 500, 220, black);
+}
+
 //hàm doc file điểm đã được lưu
 long long MaxPoint()
 {
@@ -845,7 +896,7 @@ void DrawBlood()
 {
 
     Main.blood= {Main.rect.x+7,Main.rect.y-20,blood_main,10};
-    Main.energy={Main.rect.x+12,Main.rect.y-10,energy_man,7};
+    Main.energy= {Main.rect.x+12,Main.rect.y-10,energy_man,7};
     Boss.blood= {Boss.rect.x+7,Boss.rect.y-20,blood_boss,15};
     SDL_SetRenderDrawColor(g_screen,219,26,33,255);
     SDL_RenderFillRect(g_screen,&Main.blood);
@@ -860,25 +911,27 @@ void DrawBlood()
 void DrawOnWindow()
 {
     SDL_RenderClear(g_screen);
-    if(isScreenMain==false){
+    if(isScreenMain==false)
+    {
         HandlingEventFirst();
         SDL_RenderCopy(g_screen,BkFirst.texture,NULL,NULL);
 
     }
-    else{
-    EventPlayer();
-    Timer();
-    DrawMap();
-    if(!Main.isDie) SDL_RenderCopy(g_screen, Main.texture, NULL, &Main.rect);
-    DrawMenu();
-    DrawBlood();
-    DrawBullet();
-    if(PressX==true)DrawBullet2();
-    DrawBoxs();
-    DrawEnemy();
-    if(!Boss.isDie)DrawBoss();
-    DrawBulletBoss();
-    DrawExp();
+    else
+    {
+        EventPlayer();
+        Timer();
+        DrawMap();
+        if(!Main.isDie) SDL_RenderCopy(g_screen, Main.texture, NULL, &Main.rect);
+        DrawMenu();
+        DrawBlood();
+        DrawBullet();
+        if(PressX==true)DrawBullet2();
+        DrawBoxs();
+        DrawEnemy();
+        if(!Boss.isDie)DrawBoss();
+        DrawBulletBoss();
+        DrawExp();
     }
     SDL_RenderPresent(g_screen);
 }
@@ -888,7 +941,7 @@ void DrawOnWindow()
 void first_state()
 {
 //cap nhat best time tu file txt
-isScreenMain=false;
+    isScreenMain=false;
     bestTime=MaxPoint();
     lastTimeMap=SDL_GetTicks();
     Map.texture = IMG_LoadTexture(g_screen, "image/bk2.png");
@@ -898,27 +951,34 @@ isScreenMain=false;
         cout << "Không thể tải background!" << endl;
 
     }
-   for (int i = 1; i <= 4; i++) {
-    std::string path;
-    if (i == 2) {
-        path = "image/bk" + std::to_string(i) + ".jpg";
-    } else {
-        path = "image/bk" + std::to_string(i) + ".png";
-    }
+    for (int i = 1; i <= 4; i++)
+    {
+        std::string path;
+        if (i == 2)
+        {
+            path = "image/bk" + std::to_string(i) + ".jpg";
+        }
+        else
+        {
+            path = "image/bk" + std::to_string(i) + ".png";
+        }
 
-    SDL_Texture* texture = IMG_LoadTexture(g_screen, path.c_str());
-    if (texture != nullptr) {
-        TextureMap.push_back(texture);
-    } else {
-        std::cerr << "Failed to load texture: " << path << " SDL_Error: " << SDL_GetError() << std::endl;
+        SDL_Texture* texture = IMG_LoadTexture(g_screen, path.c_str());
+        if (texture != nullptr)
+        {
+            TextureMap.push_back(texture);
+        }
+        else
+        {
+            std::cerr << "Failed to load texture: " << path << " SDL_Error: " << SDL_GetError() << std::endl;
+        }
     }
-}
- Map.texture=TextureMap[3];
+    Map.texture=TextureMap[3];
 
     BkFirst.texture=IMG_LoadTexture(g_screen,"image/bk0.png");
 
     Back.texture=IMG_LoadTexture(g_screen,"image/back.png");
-    Back.rect={10,520,60,60};
+    Back.rect= {10,520,60,60};
     Continue.texture=IMG_LoadTexture(g_screen,"image/continueButton.png");
     Continue.rect= {400,520,CONTINUE_WIDTH,CONTINUE_HEIGHT};
 
@@ -935,27 +995,31 @@ isScreenMain=false;
     {
         cout<<"loi tai texture plane"<<endl;
     }
-   Bullet2.texture=IMG_LoadTexture(g_screen,"image/torpedo_black.png");
-   Bullet2.rect={-150,Main.rect.y,120,40};
+    Bullet2.texture=IMG_LoadTexture(g_screen,"image/torpedo_black.png");
+    Bullet2.rect= {-150,Main.rect.y,120,40};
     texture_bullet1=IMG_LoadTexture(g_screen,"image/bullet2.png");
-     texture_bullet2=IMG_LoadTexture(g_screen,"image/bullet3.png");
-      texture_bullet3=IMG_LoadTexture(g_screen,"image/bullet1.png");
+    texture_bullet2=IMG_LoadTexture(g_screen,"image/bullet3.png");
+    texture_bullet3=IMG_LoadTexture(g_screen,"image/bullet1.png");
     Bullet.texture=texture_bullet1;
     if(Bullet.texture==NULL)
     {
         cout<<"loi tai anh dan ";
     }
-for (int i = 1; i <= 12; ++i) {
-    std::string path = "image/af" + std::to_string(i) + ".png";
-    SDL_Texture* texture = IMG_LoadTexture(g_screen, path.c_str());
-    if (texture != nullptr) {
-        Enemys.push_back(texture);
-    } else {
-        // In lỗi nếu không load được ảnh
-        std::cerr << "Failed to load texture: " << path << " SDL_Error: " << SDL_GetError() << std::endl;
+    for (int i = 1; i <= 12; ++i)
+    {
+        std::string path = "image/af" + std::to_string(i) + ".png";
+        SDL_Texture* texture = IMG_LoadTexture(g_screen, path.c_str());
+        if (texture != nullptr)
+        {
+            Enemys.push_back(texture);
+        }
+        else
+        {
+            // In lỗi nếu không load được ảnh
+            std::cerr << "Failed to load texture: " << path << " SDL_Error: " << SDL_GetError() << std::endl;
+        }
     }
-}
-   number_bullet_main=1;
+    number_bullet_main=1;
 
     texture_enemy2=loadTexture("image/boss3.jpg",g_screen);
 
@@ -972,7 +1036,8 @@ for (int i = 1; i <= 12; ++i) {
     texture_box_hp=IMG_LoadTexture(g_screen,"image/hp2.png");
     BoxHp.texture=texture_box_hp;
 
-
+    Name.texture=IMG_LoadTexture(g_screen,"image/name.png");
+    Name.rect= {550,200,200,100};
 
     bulletSound=Mix_LoadWAV("sound/bullet.wav");
     laze=Mix_LoadWAV("sound/laser.wav");
@@ -1013,7 +1078,10 @@ int main(int argc, char* argv[])
     first_state();
     while (!quit)
     {
-     if(isScreenMain==true)HandlingEvent();
+        if(isScreenMain==true)
+        {
+            HandlingEvent();
+        }
         if(!paused)
             DrawOnWindow();
     }
